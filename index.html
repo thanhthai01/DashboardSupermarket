@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>AdminLTE 2 | Dashboard</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport" />
+  <!-- Bootstrap 3.3.6 -->
+  <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" />
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css" />
+  <!-- Theme style -->
+  <link rel="stylesheet" href="dist/css/AdminLTE.min.css" />
+  <!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+  <link rel="stylesheet" href="dist/css/skins/_all-skins.min.css" />
+  <link rel="stylesheet" href="plugins/datatables/dataTables.bootstrap.css">
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css" />
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+  <script type="module" src="./index.js"></script>
+
+</head>
+
+<style>
+  .content-wrapper {
+    display: none;
+  }
+
+  .content-wrapper.active {
+    display: block;
+    position: relative;
+
+  }
+
+  .content-dashboard {
+    height: 100%;
+    padding: 20px;
+  }
+
+  .content-video {
+    height: calc(100vh - 200px);
+  }
+
+  .videoback {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: calc(100vh - 50px);
+  }
+
+  .videoback .bg-video {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .qc-videoback {
+    max-width: 100%;
+    height: 100%;
+  }
+
+  .qc-video {
+    width: 100%;
+    height: 90%;
+  }
+
+  .overlay-dashboard {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(40, 41, 44, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .overlay_content {
+    position: absolute;
+    z-index: 1000;
+    width: 70%;
+  }
+
+  .overlay_content h2 {
+    color: #F6CB95;
+
+    text-shadow: 1px 1px #402371, 2px 2px #402371, 3px 3px #402371;
+    font: Bold 52px Sketch_Block;
+    -webkit-transition: all 0.12s ease-out;
+    /*chrome & safari*/
+    -moz-transition: all 0.12s ease-out;
+    /*firefox 3.7*/
+    -o-tramsition: all 0.12s ease-out;
+    /*Opera*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+
+
+
+  @media screen and (max-width: 768px) {
+
+    .content-dashboard,
+    .content-video {
+      height: 150px;
+
+      padding: 0;
+      font-size: 12px;
+    }
+
+    .qc-videoback {
+      min-width: 100%;
+      height: auto;
+
+    }
+
+    .qc-video {
+      min-width: 100%;
+      min-height: 100%;
+
+    }
+  }
+
+
+  @media screen and (max-width: 992px) {
+
+    .content-dashboard,
+    .content-video {
+      height: 150px;
+    }
+  }
+
+  @media screen and (max-width: 1200px) {
+
+    .content-dashboard,
+    .content-video {
+      height: 100%;
+    }
+  }
+</style>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-analytics.js";
+  //import { getDatabase, ref, onValue, query, limitToLast } from "./firebase/database";
+  import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC65FMF1JCgCFjIQ96JkDBBx9uSjG9OJKE",
+    authDomain: "my-project-ad64c.firebaseapp.com",
+    databaseURL: "https://my-project-ad64c-default-rtdb.firebaseio.com",
+    projectId: "my-project-ad64c",
+    storageBucket: "my-project-ad64c.appspot.com",
+    messagingSenderId: "412293666454",
+    appId: "1:412293666454:web:a3df6af903662e897394b7",
+    measurementId: "G-PLV59X8N8J"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+  function formaterDate(s) {
+    var parts = s.split(':');
+    return parts[3] + ':' + parts[4] + ' ' + parts[2] + '/' + parts[1] + '/' + parts[0];
+  }
+  const database = getDatabase(app);
+  const dataRef = query(ref(database, 'floor1'), limitToLast(30));
+
+  onValue(dataRef, (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      var childKey = childSnapshot.key;
+      var childData = childSnapshot.val();
+      if (childKey == 'current') {
+        var parts = childKey.split(':');
+        document.getElementById("humi1").innerHTML = childData.humidity;
+        document.getElementById("temp1").innerHTML = childData.temperature;
+
+      }
+    });
+  });
+  const dataRef2 = query(ref(database, 'floor2'), limitToLast(30));
+  onValue(dataRef2, (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      var childKey = childSnapshot.key;
+      var childData = childSnapshot.val();
+      if (childKey == 'current') {
+        var parts = childKey.split(':');
+        document.getElementById("humi2").innerHTML = childData.humidity;
+        document.getElementById("temp2").innerHTML = childData.temperature;
+      }
+    });
+  });
+
+  const dataRef3 = query(ref(database, 'floor3'), limitToLast(30));
+
+  onValue(dataRef3, (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      var childKey = childSnapshot.key;
+      var childData = childSnapshot.val();
+      if (childKey == 'current') {
+        var parts = childKey.split(':');
+        document.getElementById("humi3").innerHTML = childData.humidity;
+        document.getElementById("temp3").innerHTML = childData.temperature;
+      }
+    });
+  });
+
+
+  const showstaff = document.querySelector("#showstaff section.content");
+
+  const dataNhanVien = query(ref(database, 'NhanVien'), limitToLast(30));
+  var dtnv = []
+  var time = "";
+  var html = "";
+
+  function later(a, b) {
+    var time1 = new Date(a);
+    var time2 = new Date(b);
+    const timeDiff = Math.abs(time2 - time1); // lấy giá trị tuyệt đối của hiệu của hai đối tượng Date
+    const diffInMinutes = Math.floor(timeDiff / (1000 * 60)); // tính khoảng cách thời gian trong đơn vị phút
+    if (diffInMinutes < 60) {
+      return diffInMinutes + " minutes late";
+    } else {
+      var h = Math.floor(diffInMinutes / 60);
+      var m = diffInMinutes % 60;
+
+      return h + " hour " + m + " minutes late"
+    }
+  }
+  function checkNgaycong(a, b, dcheckIn,) {
+    var time1 = new Date(formatDateTimeAtt(dcheckIn, a));
+    var time2 = new Date(formatDateTimeAtt(dcheckIn, "08:00"))
+    if (a != "" && b != "") {
+      if (time1 > time2) {
+        return later(time1, time2);
+      } else {
+        return 1;
+      }
+    } else {
+      return 0;
+    }
+  }
+
+  function formatDateAtt(t) {
+    var parts = t.split(':');
+    return parts[2] + '-' + parts[1] + '-' + parts[0];
+  }
+
+  function formatDateTimeAtt(a, b) {
+    var parts = a.split(':');
+    var dt = parts[0] + '-' + parts[1] + '-' + parts[2];
+    return dt + "T" + b + ":00Z";
+  }
+
+  var id = 3;
+  onValue(dataNhanVien, (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      var tr = "";
+      var count = 0;
+      var idd = "example" + id++;
+      var childKey = childSnapshot.key;
+      var childData = childSnapshot.val();
+      var ngaycong = childData.ngaycong;
+
+
+      for (let item in childData.attendance) {
+        // for (let key in childData.attendance[item]) {
+        //   console.log(childData.attendance[item])
+        // }
+        count += 1;
+        tr += `
+            <tr>
+              <td width= "10px">`+ count + `</td>
+              <td>`+ formatDateAtt(item) + `</td>
+              <td>`+ childData.attendance[item].checkIn + `</td>
+              <td>`+ childData.attendance[item].checkOut + `</td>
+              <td>`+ checkNgaycong(childData.attendance[item].checkIn, childData.attendance[item].checkOut, item) + `</td>
+            </tr>`;
+      }
+      html += `
+          <div class="row">
+            <div class="col-md-4 col-xs-12">
+              <div class="box">
+                <div class="box-header">
+                  <h3 class="box-title">`+ childKey + `</h3>
+                </div>
+                <div class="box-body">
+                  <img src="./avt.png" alt="" width="100%" height="auto">
+                </div>
+              </div>
+              <!-- /.box -->
+            </div>
+            <div class="col-md-8 col-xs-12">
+              <div class="box">
+                <div class="box-header">
+                  <h3 class="box-title">Data Table With Full Features</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                  <table id="`+ idd + `" class="table table-bordered table-striped">
+                    <thead>
+                      <tr>
+                        <th width= "10px">STT</th>
+                        <th>Date</th>
+                        <th>Check-In time</th>
+                        <th>Check-Out time</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody">
+                     
+                     `+ tr + `
+                    </tbody>
+                    <tfoot>
+                     <tr>
+                      <th colspan="5" style=" text-align: right; padding-right: 70px">Total: `+ ngaycong + `</th>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <!-- /.box-body -->
+              </div>
+              <!-- /.box -->
+            </div>
+            <!-- /.col -->
+          </div>
+      `;
+
+    });
+    localStorage.setItem("htmlTb", html);
+
+  });
+</script>
+
+<body class="hold-transition skin-blue sidebar-mini">
+  <div class="wrapper">
+    <header class="main-header">
+      <!-- Logo -->
+      <a href="index.html" class="logo">
+        <!-- mini logo for sidebar mini 50x50 pixels -->
+        <span class="logo-mini"><b>A</b>LT</span>
+        <!-- logo for regular state and mobile devices -->
+        <span class="logo-lg"><b>Admin</b>LTE</span>
+      </a>
+      <!-- Header Navbar: style can be found in header.less -->
+      <nav class="navbar navbar-static-top">
+        <!-- Sidebar toggle button-->
+        <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+          <span class="sr-only">Toggle navigation</span>
+        </a>
+
+        <div class="navbar-custom-menu">
+          <ul class="nav navbar-nav">
+            <!-- Messages: style can be found in dropdown.less-->
+            <li class="dropdown messages-menu">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <i class="fa fa-envelope-o"></i>
+                <span class="label label-success">4</span>
+              </a>
+            </li>
+            <!-- Notifications: style can be found in dropdown.less -->
+            <li class="dropdown notifications-menu">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <i class="fa fa-bell-o"></i>
+                <span class="label label-warning">10</span>
+              </a>
+            </li>
+            <!-- Tasks: style can be found in dropdown.less -->
+            <li class="dropdown tasks-menu">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <i class="fa fa-flag-o"></i>
+                <span class="label label-danger">9</span>
+              </a>
+            </li>
+            <!-- User Account: style can be found in dropdown.less -->
+            <li class="dropdown user user-menu">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <img src="dist/img/user2-160x160.jpg" class="user-image" alt="User Image" />
+                <span class="hidden-xs">Admin</span>
+              </a>
+              <ul class="dropdown-menu">
+                <!-- User image -->
+                <li class="user-header">
+                  <img src="dist/img/user2-160x160.jpg" class="img-circle" alt="User Image" />
+
+                  <p>
+                    Admin
+                    <small>2023</small>
+                  </p>
+                </li>
+                <!-- Menu Body -->
+
+                <!-- Menu Footer-->
+                <li class="user-footer">
+                  <div class="pull-left">
+                    <a href="#" class="btn btn-default btn-flat">Profile</a>
+                  </div>
+                  <div class="pull-right">
+                    <a href="#" class="btn btn-default btn-flat">Sign out</a>
+                  </div>
+                </li>
+              </ul>
+            </li>
+            <!-- Control Sidebar Toggle Button -->
+            <li>
+              <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <!-- Left side column. contains the logo and sidebar -->
+    <aside class="main-sidebar">
+      <!-- sidebar: style can be found in sidebar.less -->
+      <section class="sidebar">
+        <!-- Sidebar user panel -->
+        <div class="user-panel">
+          <div class="pull-left image">
+            <img src="dist/img/user2-160x160.jpg" class="img-circle" alt="User Image" />
+          </div>
+          <div class="pull-left info">
+            <p>Admin</p>
+            <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+          </div>
+        </div>
+        <!-- search form -->
+        <form action="#" method="get" class="sidebar-form">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search..." />
+            <span class="input-group-btn">
+              <button type="submit" name="search" id="search-btn" class="btn btn-flat">
+                <i class="fa fa-search"></i>
+              </button>
+            </span>
+          </div>
+        </form>
+        <!-- /.search form -->
+        <!-- sidebar menu: : style can be found in sidebar.less -->
+        <ul class="sidebar-menu nav nav-stacked" role="tablist">
+          <li class="header">MAIN NAVIGATION</li>
+          <li class="tab active">
+            <a href="#home">
+              <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="tab">
+            <a href="#advertisement">
+              <i class="fa fa-th"></i> <span>Advertisement</span>
+            </a>
+          </li>
+          <li class="tab statistics treeview">
+            <a href="#statistics">
+              <i class="fa fa-line-chart"></i>
+              <span>Statistics</span>
+            </a>
+            <ul class="treeview-menu">
+              <li><a href="floor1.html"><i class="fa fa-circle-o"></i> Floor 1</a></li>
+              <li><a href="floor2.html"><i class="fa fa-circle-o"></i> Floor 2</a></li>
+              <li><a href="floor3.html"><i class="fa fa-circle-o"></i> Floor 3</a></li>
+            </ul>
+          </li>
+          <li class="tab">
+            <a href="#staff">
+              <i class="fa fa-users"></i> <span>Staff</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+      <!-- /.sidebar -->
+    </aside>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper active">
+      <section class="videoback">
+        <video class="bg-video" src="./dashboard_Slomo.mp4" autoplay="autoplay" preload="auto" loop="loop" muted
+          defaultmuted playsinline oncontextmenu="return false"></video>
+
+        <div class="overlay-dashboard">
+          <div class="overlay_content">
+            <div class="overlay_text">
+              <h2>Super Market</h2>
+            </div>
+
+          </div>
+        </div>
+      </section>
+      <!-- /.content -->
+
+    </div>
+    <!-- /.content-wrapper -->
+    <!-- Advertisement -->
+    <div class="content-wrapper">
+      <!-- Content Header (Page header) -->
+      <section class="content-header">
+        <h1>
+          Advertisement
+          <small>Control panel</small>
+        </h1>
+      </section>
+      <!-- Main content -->
+      <section class="content adver ">
+        <div class="row">
+
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Thông tin quảng cáo</h3>
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div class="content-dashboard">
+                  <p id="title_adv"></p>
+                  <p id="age_adv"></p>
+                  <p id="gender_adv" style="color: #3b4b42;font-weight: bold;"></p>
+                  <p id="des_adv"></p>
+                </div>
+              </div>
+              <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+          </div>
+          <!-- /.col (RIGHT) -->
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <!-- AREA CHART -->
+            <div class="box box-primary">
+              <div class="box-header with-border">
+                <h3 class="box-title">Hình ảnh quảng cáo</h3>
+
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div class="content-video">
+                  <section class="qc-videoback">
+                    <video class="qc-video" src="./video.mp4" autoplay="autoplay" preload="auto" loop="loop" muted
+                      defaultmuted playsinline oncontextmenu="return false"></video>
+                  </section>
+                </div>
+              </div>
+              <!-- /.box-body -->
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- /.content -->
+    </div>
+    <!-- /.Advertisement -->
+
+    <!-- Statistics -->
+    <div class="content-wrapper">
+      <!-- Content Header (Page header) -->
+      <section class="content-header">
+        <h1>
+          Statistics
+          <small>Control panel</small>
+        </h1>
+      </section>
+
+      <!-- Main content -->
+      <section class="content">
+        <div class="row">
+          <h3 class="content-header">Thống kê Nhiệt độ</h3>
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Sảnh siêu thị</h3>
+
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span style="font-size: 20px; float: right">30</span>
+                </div>
+              </div>
+              <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+          </div>
+          <!-- /.col (RIGHT) -->
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Lầu 1</h3>
+
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span id="temp1" style="font-size: 20px; float: right"></span>
+                </div>
+              </div>
+              <!-- /.box-body -->
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Lầu 2</h3>
+
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span id="temp2" style="font-size: 20px; float: right"></span>
+                </div>
+              </div>
+              <!-- /.box-body -->
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Lầu 3</h3>
+
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span id="temp3" style="font-size: 20px; float: right"></span>
+                </div>
+              </div>
+              <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+          </div>
+        </div>
+
+        <div class="row">
+          <h3 class="content-header">Thống kê Độ ẩm</h3>
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Sảnh siêu thị</h3>
+
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span style="font-size: 20px; float: right">30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Lầu 1</h3>
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span id="humi1" style="font-size: 20px; float: right"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Lầu 2</h3>
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span id="humi2" style="font-size: 20px; float: right"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 col-xs-6">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+              <div class="box-header with-border">
+                <h3 class="box-title">Lầu 3</h3>
+
+                <div class="box-tools pull-right">
+                  <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-box-tool" data-widget="remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="box-body chart-responsive">
+                <div style="height: 30px" style="padding: 20px">
+                  <span id="humi3" style="font-size: 20px; float: right"></span>
+                </div>
+              </div>
+              <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+          </div>
+        </div>
+
+
+      </section>
+    </div>
+    <!-- /.Statistics -->
+
+    <!-- Staff -->
+    <div class="content-wrapper">
+      <!-- Content Header (Page header) -->
+      <section class="content-header">
+        <h1>
+          Staff
+          <small>Control panel</small>
+        </h1>
+      </section>
+
+      <!-- Main content -->
+      <section class="content">
+        <div class="row" id="showstaff">
+          <!-- /.col (LEFT) -->
+          <h3 class="content-header">Bảng thống kê</h3>
+
+          <section class="content">
+            <script>
+              showstaff.innerHTML = localStorage.getItem("htmlTb");
+
+            </script>
+            <!-- /.row -->
+          </section>
+
+        </div>
+      </section>
+    </div>
+    <!-- /.Staff -->
+
+
+    <script>
+      const tabs = document.querySelectorAll(".tab");
+      const tabContents = document.querySelectorAll(".content-wrapper");
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+          tabContents.forEach((content) => {
+            content.classList.remove("active");
+          });
+          tabs.forEach((tab) => {
+            tab.classList.remove("active");
+          });
+          tabContents[index].classList.add("active");
+          tabs[index].classList.add("active");
+        });
+      });
+    </script>
+
+
+  </div>
+  <!-- ./wrapper -->
+  <script>
+    $(function () {
+      $("#example5").DataTable();
+      $("#example3").DataTable();
+      $("#example4").DataTable();
+      $('#example2').DataTable({
+        "paging": true,
+        "lengthChange": false,
+        "searching": false,
+        "ordering": true,
+        "info": true,
+        "autoWidth": false
+      });
+    });
+  </script>
+
+  <!-- jQuery 2.2.0 -->
+  <script src="plugins/jQuery/jQuery-2.2.0.min.js"></script>
+  <!-- jQuery UI 1.11.4 -->
+  <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+  <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+  <!-- DataTables -->
+  <script src="plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
+  <!-- Bootstrap 3.3.6 -->
+  <script src="bootstrap/js/bootstrap.min.js"></script>
+
+  <!-- daterangepicker -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+
+  <!-- AdminLTE App -->
+  <script src="dist/js/app.min.js"></script>
+  <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+  <!-- <script src="dist/js/pages/dashboard.js"></script> -->
+  <!-- AdminLTE for demo purposes -->
+  <script src="dist/js/demo.js"></script>
+
+</body>
+
+</html>
